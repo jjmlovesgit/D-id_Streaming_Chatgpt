@@ -1,7 +1,7 @@
 //working with openAI but not streaming back the Avatar - only sreams back voice with the answer with still image 
 //node app.js C:\Projects\DID\streams_Oct>node app.js
 //http://localhost:3000/
-//Same output chrome or edge browser
+//Same output chrome or edge browser -- shows streaming in status as plays voice response
 
 'use strict';
 import DID_API from './api.json' assert { type: 'json' };
