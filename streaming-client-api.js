@@ -1,6 +1,5 @@
 //working with openAI but not streaming back the Avatar - only voice so far on 3000
-//node app.js 
-//http://localhost:3000/
+// Ugly working code -- one day of hacking 
 
 'use strict';
 import DID_API from './api.json' assert { type: 'json' };
