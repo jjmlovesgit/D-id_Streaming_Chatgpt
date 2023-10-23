@@ -1,52 +1,47 @@
 //working with openAI but not streaming back the Avatar - only voice so far on 3000
-// Ugly working code -- one day of hacking 
+//node app.js C:\Projects\DID\streams_Oct>node app.js
+//http://localhost:3000/
 
 'use strict';
 import DID_API from './api.json' assert { type: 'json' };
 
 if (DID_API.key == '🤫') alert('Please put your API key inside ./api.json and restart.');
 
+// Load the OpenAI API from file new 10/23 
 let OPENAI_API_KEY;
-//let OPENAI_ENDPOINT = 'https://api.openai.com/v1/engines/davinci/completions';
-
-// Load the configuration file
 fetch('./config.json')
   .then((response) => response.json())
   .then(async (config) => {
     OPENAI_API_KEY = config.OPENAI_API_KEY;
-
-    // Define talkVideo element here
-    const talkVideo = document.getElementById('talk-video');
-    talkVideo.setAttribute('playsinline', '');
-   
   })
   .catch((error) => {
     console.error('Error loading config.json:', error);
   });
 
-  async function fetchOpenAIResponse(userMessage) {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{role: "user", content: userMessage}],
-        temperature: 0.7,
-        max_tokens: 15
-      }),
-    });
+// OpenAI API endpoint set up new 10/23 
+async function fetchOpenAIResponse(userMessage) {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: "gpt-3.5-turbo",
+      messages: [{role: "user", content: userMessage}],
+      temperature: 0.7,
+      max_tokens: 15
+    }),
+  });
   
-    if (!response.ok) {
-      throw new Error(`OpenAI API request failed with status ${response.status}`);
-    }
-  
-    const data = await response.json();
-    return data.choices[0].message.content.trim();
+  if (!response.ok) {
+    throw new Error(`OpenAI API request failed with status ${response.status}`);
   }
+  const data = await response.json();
+  return data.choices[0].message.content.trim();
+}
   
+//same  - No edits from Github example for this whole section
 const RTCPeerConnection = (
   window.RTCPeerConnection ||
   window.webkitRTCPeerConnection ||
@@ -87,7 +82,6 @@ connectButton.onclick = async () => {
     },
     body: JSON.stringify({
       source_url: 'https://d-id-public-bucket.s3.amazonaws.com/or-roman.jpg',
-      
     }),
   });
 
@@ -117,25 +111,31 @@ connectButton.onclick = async () => {
   });
 };
 
+// This is changed to accept the ChatGPT response as Text input to D-ID
 const talkButton = document.getElementById('talk-button');
 talkButton.onclick = async () => {
   if (peerConnection?.signalingState === 'stable' || peerConnection?.iceConnectionState === 'connected') {
-    // Get the user input from the text input field
+    //
+    // New from Jim 10/23 -- Get the user input from the text input field get ChatGPT Response
     const userInput = document.getElementById('user-input-field').value;
     const responseFromOpenAI = await fetchOpenAIResponse(userInput);
-
+    //
     // Print the openAIResponse to the console
     console.log("OpenAI Response:", responseFromOpenAI);
-
+    //
     const talkResponse = await fetch(`${DID_API.url}/talks/streams/${streamId}`, {
       method: 'POST',
-      headers: { Authorization: `Basic ${DID_API.key}`, 'Content-Type': 'application/json' },
+      headers: { 
+        Authorization: `Basic ${DID_API.key}`, 
+        'Content-Type': 'application/json'
+     },
       body: JSON.stringify({
         script: {
           type: 'text',
           subtitles: 'false',
           provider: { type: 'microsoft', voice_id: 'en-US-ChristopherNeural' },
-          ssml: true,
+          ssml: false,
+          //send the openAIResponse to D-id
           input: responseFromOpenAI
         },
         config: {
@@ -155,11 +155,14 @@ talkButton.onclick = async () => {
           result_format: 'mp4'
         },
         driver_url: 'bank://lively/',
-        session_id: sessionId
-      })
+        session_id: sessionId,
+      }),
     });
   }
 };
+
+// NOTHING BELOW THIS LINE IS CHANGED FROM ORIGNAL D-id File Example
+//
 
 const destroyButton = document.getElementById('destroy-button');
 destroyButton.onclick = async () => {
