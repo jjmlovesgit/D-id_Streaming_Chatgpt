@@ -22,3 +22,5 @@
 
 ## Final Thoughts
 * Be patient and enjoy the puzzle if things are not working right away -- stay with it you will get it!
+
+* https://www.youtube.com/watch?v=hfLZtCDMwOQ
