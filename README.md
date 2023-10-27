@@ -23,6 +23,6 @@
 ## Final Thoughts
 * Be patient and enjoy the puzzle if things are not working right away -- stay with it you will get it!
 
-* https://www.youtube.com/watch?v=hfLZtCDMwOQ
+https://www.youtube.com/watch?v=hfLZtCDMwOQ
 
-https://i9.ytimg.com/vi/hfLZtCDMwOQ/mqdefault.jpg?sqp=CKCL8akG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGBcgYihlMA8=&rs=AOn4CLC31tGq2x6VKEM4x3b12LPKF_mZEA
+
