@@ -1,4 +1,5 @@
 # Streaming Live Demo by D-ID
+## Please consider leaving as star this was some work :)
 
 ## Initial Setup:
 * (install express) open a terminal in the folder:
