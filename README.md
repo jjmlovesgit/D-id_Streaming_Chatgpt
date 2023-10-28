@@ -23,8 +23,6 @@
 ## Final Thoughts
 * Be patient and enjoy the puzzle if things are not working right away -- stay with it you will get it!
 
-https://www.youtube.com/watch?v=hfLZtCDMwOQ
-
-
+https://youtu.be/WTONZ6T1LmA
 
 ![image](https://github.com/jjmlovesgit/D-id_Streaming_Chatgpt/assets/47751509/f10480b6-530e-478c-8723-8d7f4aca34f6)
