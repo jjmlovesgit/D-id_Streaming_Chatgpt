@@ -3,8 +3,9 @@
 
 ## Initial Setup:
 * (install express) open a terminal in the folder:
-    run this: npm install express
-    run this: npm install openai
+    **run this: npm install express
+    **run this: npm install openai
+    **run this: npm install base64
 * (add your d-id api key) edit the `api.json` inside the uncompressed folder and replace the emoji with your key
 * Run a test to ensure yor api is set correctly by checking d-id credit balance:  Run test_d_id.js
 * (add your OpenAI api key) edit the `config.json` inside the uncompressed folder and replace the emoji with your key
