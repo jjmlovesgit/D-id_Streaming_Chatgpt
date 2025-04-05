@@ -7,10 +7,17 @@
     **run this: npm install openai
     **run this: npm install base64
 * (add your d-id api key and openai key etc) edit the `api.json` file
+![image](https://github.com/user-attachments/assets/7f35b777-e502-462c-9295-88e9a58d488a)
+
 * Run a test to ensure yor D-id api key is set correctly by checking d-id credit balance:  node test_d_id.js
 * Run a test to ensure yor Openai api key is set correctly by checking ChatGPT:  node test_openai.js
 * Got issues?  Cut and paste to ChatGPT etc and ask for assistance
 * Note: Both tests must woprk before proceeding or you will get frustrated 
+
+## Image files
+* the idle video can be replaced with your idel video
+* the Avatar image also need to be replaced with yours on a hosted web endpoint
+![image](https://github.com/user-attachments/assets/8d8cb943-20cf-4e1a-b23e-1c3eb9028e92)
 
 ## Start the demo:
 * After testing API key set up as per above
