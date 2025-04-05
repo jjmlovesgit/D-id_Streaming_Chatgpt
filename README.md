@@ -15,7 +15,9 @@
 * Note: Both tests must woprk before proceeding or you will get frustrated 
 
 ## Image files
-* the idle video can be replaced with your idel video
+* the idle video can be replaced with your idle video in index.html
+![image](https://github.com/user-attachments/assets/a98a567a-1c60-4461-96d9-5c6a96fb482e)
+
 * the Avatar image in streaming-client-api.js also needs to be replaced with yours on a hosted web endpoint
 ![image](https://github.com/user-attachments/assets/8d8cb943-20cf-4e1a-b23e-1c3eb9028e92)
 
