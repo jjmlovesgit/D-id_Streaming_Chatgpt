@@ -1,6 +1,8 @@
 # Streaming Live Demo by D-ID (tested 4/5/25)
 ## Please consider leaving as star :)
 
+https://youtu.be/TmEVbnsHFYQ
+
 ## Initial Setup:
 * (install express) open a terminal in the folder:
     **run this: npm install express
