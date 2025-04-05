@@ -23,7 +23,7 @@
 
 ## OpenAI.js
 * be sure to review the model seletion for Openai
-![image](https://github.com/user-attachments/assets/e5f4dcb8-f988-4e3e-8387-16b4e31c137b)
+* ![image](https://github.com/user-attachments/assets/e5f4dcb8-f988-4e3e-8387-16b4e31c137b)
 
 ## Start the demo:
 * After testing API key set up as per above
