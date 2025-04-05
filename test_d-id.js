@@ -24,7 +24,12 @@ async function main() {
     const apiKey = apiKeyJson.key;
 
     const didCredits = await getDidCredits(apiKey);
-    console.log("Response:", didCredits);
+    // Extracting just the 'remaining' and 'total' values
+    const creditsSummary = {
+      remaining: didCredits.remaining,
+      total: didCredits.total
+    };
+    console.log("Credits Summary:", creditsSummary);
   } catch (error) {
     console.error("Error:", error);
   }
