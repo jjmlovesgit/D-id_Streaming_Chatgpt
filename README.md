@@ -16,7 +16,7 @@
 
 ## Image files
 * the idle video can be replaced with your idel video
-* the Avatar image also need to be replaced with yours on a hosted web endpoint
+* the Avatar image in streaming-client-api.js also needs to be replaced with yours on a hosted web endpoint
 ![image](https://github.com/user-attachments/assets/8d8cb943-20cf-4e1a-b23e-1c3eb9028e92)
 
 ## Start the demo:
