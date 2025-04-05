@@ -7,7 +7,7 @@
     **run this: npm install openai
     **run this: npm install base64
 * (add your d-id api key and openai key etc) edit the `api.json` file
-![image](https://github.com/user-attachments/assets/7f35b777-e502-462c-9295-88e9a58d488a)
+* ![image](https://github.com/user-attachments/assets/7f35b777-e502-462c-9295-88e9a58d488a)
 
 * Run a test to ensure yor D-id api key is set correctly by checking d-id credit balance:  node test_d_id.js
 * Run a test to ensure yor Openai api key is set correctly by checking ChatGPT:  node test_openai.js
@@ -20,6 +20,10 @@
 
 * the Avatar image in streaming-client-api.js also needs to be replaced with yours on a hosted web endpoint
 ![image](https://github.com/user-attachments/assets/8d8cb943-20cf-4e1a-b23e-1c3eb9028e92)
+
+## OpenAI.js
+* be sure to review the model seletion for Openai
+![image](https://github.com/user-attachments/assets/e5f4dcb8-f988-4e3e-8387-16b4e31c137b)
 
 ## Start the demo:
 * After testing API key set up as per above
