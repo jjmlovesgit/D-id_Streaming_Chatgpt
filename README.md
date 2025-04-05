@@ -22,7 +22,7 @@
 ![image](https://github.com/user-attachments/assets/8d8cb943-20cf-4e1a-b23e-1c3eb9028e92)
 
 ## OpenAI.js
-* be sure to review the model seletion for Openai
+* be sure to review the model seletion for Openai in the helper file openai.js
 * ![image](https://github.com/user-attachments/assets/e5f4dcb8-f988-4e3e-8387-16b4e31c137b)
 
 ## Start the demo:
