@@ -1,350 +1,285 @@
-//working DONOTEDIT
-//CMD C:\Projects\DID\streams_Oct>node app.js on http://localhost:3000/
-
+// streaming-client-api.js
 'use strict';
-import DID_API from './api.json' assert { type: 'json' };
 
-if (DID_API.key == '🤫') alert('Please put your API key inside ./api.json and restart.');
+class VideoAgent {
+  constructor() {
+    this.peerConnection = null;
+    this.streamId = null;
+    this.sessionId = null;
+    this.statsIntervalId = null;
+    this.API_CONFIG = null;
+    this.DID_API_URL = 'https://api.d-id.com';
+    this.lastBytesReceived = 0;
+    this.videoIsPlaying = false;
 
-// Load the OpenAI API from file new 10/23 
-let OPENAI_API_KEY;
-fetch('./config.json')
-  .then((response) => response.json())
-  .then(async (config) => {
-    OPENAI_API_KEY = config.OPENAI_API_KEY;
-  })
-  .catch((error) => {
-    console.error('Error loading config.json:', error);
-  });
+    this.idleVideo = document.getElementById('idle-video');
+    this.talkVideo = document.getElementById('talk-video');
 
-// OpenAI API endpoint set up new 10/23 
-async function fetchOpenAIResponse(userMessage) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [{role: "user", content: userMessage}],
-      temperature: 0.7,
-      max_tokens: 25
-    }),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`OpenAI API request failed with status ${response.status}`);
-  }
-  const data = await response.json();
-  return data.choices[0].message.content.trim();
-}
-  
-//same  - No edits from Github example for this whole section
-const RTCPeerConnection = (
-  window.RTCPeerConnection ||
-  window.webkitRTCPeerConnection ||
-  window.mozRTCPeerConnection
-).bind(window);
-
-let peerConnection;
-let streamId;
-let sessionId;
-let sessionClientAnswer;
-
-let statsIntervalId;
-let videoIsPlaying;
-let lastBytesReceived;
-
-const talkVideo = document.getElementById('talk-video');
-talkVideo.setAttribute('playsinline', '');
-const peerStatusLabel = document.getElementById('peer-status-label');
-const iceStatusLabel = document.getElementById('ice-status-label');
-const iceGatheringStatusLabel = document.getElementById('ice-gathering-status-label');
-const signalingStatusLabel = document.getElementById('signaling-status-label');
-const streamingStatusLabel = document.getElementById('streaming-status-label');
-
-const connectButton = document.getElementById('connect-button');
-connectButton.onclick = async () => {
-  if (peerConnection && peerConnection.connectionState === 'connected') {
-    return;
+    this.init();
   }
 
-  stopAllStreams();
-  closePC();
+  async init() {
+    try {
+      const response = await fetch('./api.json');
+      this.API_CONFIG = await response.json();
 
-  const sessionResponse = await fetch(`${DID_API.url}/talks/streams`, {
-    method: 'POST',
-    headers: {'Authorization': `Basic ${DID_API.key}`, 'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      source_url: "https://raw.githubusercontent.com/jjmlovesgit/D-id_Streaming_Chatgpt/main/oracle_pic.jpg",
-    }),
-  });
+      if (!this.API_CONFIG?.key) throw new Error('Missing D-ID API key in api.json');
+      if (!this.API_CONFIG?.openai_key) throw new Error('Missing OpenAI API key in api.json');
+      if (this.API_CONFIG.url) this.DID_API_URL = this.API_CONFIG.url;
 
-  const { id: newStreamId, offer, ice_servers: iceServers, session_id: newSessionId } = await sessionResponse.json()
-  streamId = newStreamId;
-  sessionId = newSessionId;
-  
-  try {
-    sessionClientAnswer = await createPeerConnection(offer, iceServers);
-  } catch (e) {
-    console.log('error during streaming setup', e);
-    stopAllStreams();
-    closePC();
-    return;
-  }
+      this.talkVideo.setAttribute('playsinline', '');
+      this.setupEventListeners();
 
-  const sdpResponse = await fetch(`${DID_API.url}/talks/streams/${streamId}/sdp`,
-    {
-      method: 'POST',
-      headers: {Authorization: `Basic ${DID_API.key}`, 'Content-Type': 'application/json'},
-      body: JSON.stringify({answer: sessionClientAnswer, session_id: sessionId})
-    });
-};
-
-// This is changed to accept the ChatGPT response as Text input to D-ID #138 responseFromOpenAI 
-const talkButton = document.getElementById('talk-button');
-talkButton.onclick = async () => {
-  if (peerConnection?.signalingState === 'stable' || peerConnection?.iceConnectionState === 'connected') {
-    //
-    // New from Jim 10/23 -- Get the user input from the text input field get ChatGPT Response
-    const userInput = document.getElementById('user-input-field').value;
-    const responseFromOpenAI = await fetchOpenAIResponse(userInput);
-    //
-    // Print the openAIResponse to the console
-    console.log("OpenAI Response:", responseFromOpenAI);
-    //
-    const talkResponse = await fetch(`${DID_API.url}/talks/streams/${streamId}`, {
-      method: 'POST',
-      headers: { 
-        Authorization: `Basic ${DID_API.key}`, 
-        'Content-Type': 'application/json'
-     },
-      body: JSON.stringify({
-        script: {
-          type: 'text',
-          subtitles: 'false',
-          provider: { type: 'microsoft', voice_id: 'en-US-ChristopherNeural' },
-          ssml: false,
-          input: responseFromOpenAI  //send the openAIResponse to D-id
-        },
-        config: {
-          fluent: true,
-          pad_audio: 0,
-          driver_expressions: {
-            expressions: [{ expression: 'neutral', start_frame: 0, intensity: 0 }],
-            transition_frames: 0
-          },
-          align_driver: true,
-          align_expand_factor: 0,
-          auto_match: true,
-          motion_factor: 0,
-          normalization_factor: 0,
-          sharpen: true,
-          stitch: true,
-          result_format: 'mp4'
-        },
-        'driver_url': 'bank://lively/',
-        'config': {
-          'stitch': true,
-        },
-        'session_id': sessionId
-      })
-    });
-  }
-};
-
-// NOTHING BELOW THIS LINE IS CHANGED FROM ORIGNAL D-id File Example
-//
-
-const destroyButton = document.getElementById('destroy-button');
-destroyButton.onclick = async () => {
-  await fetch(`${DID_API.url}/talks/streams/${streamId}`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Basic ${DID_API.key}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ session_id: sessionId }),
-  });
-
-  stopAllStreams();
-  closePC();
-};
-
-function onIceGatheringStateChange() {
-  iceGatheringStatusLabel.innerText = peerConnection.iceGatheringState;
-  iceGatheringStatusLabel.className = 'iceGatheringState-' + peerConnection.iceGatheringState;
-}
-function onIceCandidate(event) {
-  console.log('onIceCandidate', event);
-  if (event.candidate) {
-    const { candidate, sdpMid, sdpMLineIndex } = event.candidate;
-
-    fetch(`${DID_API.url}/talks/streams/${streamId}/ice`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Basic ${DID_API.key}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        candidate,
-        sdpMid,
-        sdpMLineIndex,
-        session_id: sessionId,
-      }),
-    });
-  }
-}
-function onIceConnectionStateChange() {
-  iceStatusLabel.innerText = peerConnection.iceConnectionState;
-  iceStatusLabel.className = 'iceConnectionState-' + peerConnection.iceConnectionState;
-  if (peerConnection.iceConnectionState === 'failed' || peerConnection.iceConnectionState === 'closed') {
-    stopAllStreams();
-    closePC();
-  }
-}
-function onConnectionStateChange() {
-  // not supported in firefox
-  peerStatusLabel.innerText = peerConnection.connectionState;
-  peerStatusLabel.className = 'peerConnectionState-' + peerConnection.connectionState;
-}
-function onSignalingStateChange() {
-  signalingStatusLabel.innerText = peerConnection.signalingState;
-  signalingStatusLabel.className = 'signalingState-' + peerConnection.signalingState;
-}
-
-function onVideoStatusChange(videoIsPlaying, stream) {
-  let status;
-  if (videoIsPlaying) {
-    status = 'streaming';
-    const remoteStream = stream;
-    setVideoElement(remoteStream);
-  } else {
-    status = 'empty';
-    playIdleVideo();
-  }
-  streamingStatusLabel.innerText = status;
-  streamingStatusLabel.className = 'streamingState-' + status;
-}
-
-function onTrack(event) {
-  /**
-   * The following code is designed to provide information about wether currently there is data
-   * that's being streamed - It does so by periodically looking for changes in total stream data size
-   *
-   * This information in our case is used in order to show idle video while no talk is streaming.
-   * To create this idle video use the POST https://api.d-id.com/talks endpoint with a silent audio file or a text script with only ssml breaks 
-   * https://docs.aws.amazon.com/polly/latest/dg/supportedtags.html#break-tag
-   * for seamless results use `config.fluent: true` and provide the same configuration as the streaming video
-   */
-
-  if (!event.track) return;
-
-  statsIntervalId = setInterval(async () => {
-    const stats = await peerConnection.getStats(event.track);
-    stats.forEach((report) => {
-      if (report.type === 'inbound-rtp' && report.mediaType === 'video') {
-        const videoStatusChanged = videoIsPlaying !== report.bytesReceived > lastBytesReceived;
-
-        if (videoStatusChanged) {
-          videoIsPlaying = report.bytesReceived > lastBytesReceived;
-          onVideoStatusChange(videoIsPlaying, event.streams[0]);
-        }
-        lastBytesReceived = report.bytesReceived;
-      }
-    });
-  }, 500);
-}
-
-async function createPeerConnection(offer, iceServers) {
-  if (!peerConnection) {
-    peerConnection = new RTCPeerConnection({ iceServers });
-    peerConnection.addEventListener('icegatheringstatechange', onIceGatheringStateChange, true);
-    peerConnection.addEventListener('icecandidate', onIceCandidate, true);
-    peerConnection.addEventListener('iceconnectionstatechange', onIceConnectionStateChange, true);
-    peerConnection.addEventListener('connectionstatechange', onConnectionStateChange, true);
-    peerConnection.addEventListener('signalingstatechange', onSignalingStateChange, true);
-    peerConnection.addEventListener('track', onTrack, true);
-  }
-
-  await peerConnection.setRemoteDescription(offer);
-  console.log('set remote sdp OK');
-
-  const sessionClientAnswer = await peerConnection.createAnswer();
-  console.log('create local sdp OK');
-
-  await peerConnection.setLocalDescription(sessionClientAnswer);
-  console.log('set local sdp OK');
-
-  return sessionClientAnswer;
-}
-
-function setVideoElement(stream) {
-  if (!stream) return;
-  talkVideo.srcObject = stream;
-  talkVideo.loop = false;
-
-  // safari hotfix
-  if (talkVideo.paused) {
-    talkVideo
-      .play()
-      .then((_) => {})
-      .catch((e) => {});
-  }
-}
-
-function playIdleVideo() {
-  talkVideo.srcObject = undefined;
-  talkVideo.src = 'oracle_Idle.mp4';
-  talkVideo.loop = true;
-}
-
-function stopAllStreams() {
-  if (talkVideo.srcObject) {
-    console.log('stopping video streams');
-    talkVideo.srcObject.getTracks().forEach((track) => track.stop());
-    talkVideo.srcObject = null;
-  }
-}
-
-function closePC(pc = peerConnection) {
-  if (!pc) return;
-  console.log('stopping peer connection');
-  pc.close();
-  pc.removeEventListener('icegatheringstatechange', onIceGatheringStateChange, true);
-  pc.removeEventListener('icecandidate', onIceCandidate, true);
-  pc.removeEventListener('iceconnectionstatechange', onIceConnectionStateChange, true);
-  pc.removeEventListener('connectionstatechange', onConnectionStateChange, true);
-  pc.removeEventListener('signalingstatechange', onSignalingStateChange, true);
-  pc.removeEventListener('track', onTrack, true);
-  clearInterval(statsIntervalId);
-  iceGatheringStatusLabel.innerText = '';
-  signalingStatusLabel.innerText = '';
-  iceStatusLabel.innerText = '';
-  peerStatusLabel.innerText = '';
-  console.log('stopped peer connection');
-  if (pc === peerConnection) {
-    peerConnection = null;
-  }
-}
-
-const maxRetryCount = 3;
-const maxDelaySec = 4;
-// Default of 1 moved to 5
-async function fetchWithRetries(url, options, retries = 3) {
-  try {
-    return await fetch(url, options);
-  } catch (err) {
-    if (retries <= maxRetryCount) {
-      const delay = Math.min(Math.pow(2, retries) / 4 + Math.random(), maxDelaySec) * 1000;
-
-      await new Promise((resolve) => setTimeout(resolve, delay));
-
-      console.log(`Request failed, retrying ${retries}/${maxRetryCount}. Error ${err}`);
-      return fetchWithRetries(url, options, retries + 1);
-    } else {
-      throw new Error(`Max retries exceeded. error: ${err}`);
+      console.log('Initialized successfully');
+    } catch (error) {
+      this.showError(`Initialization failed: ${error.message}`);
     }
   }
+
+  setupEventListeners() {
+    document.getElementById('connect-button').onclick = () => this.handleConnect();
+    document.getElementById('talk-button').onclick = () => this.handleTalk();
+    document.getElementById('destroy-button').onclick = () => this.handleDestroy();
+    document.getElementById('enter-button').onclick = () => this.handleTalk();
+    document.getElementById('user-input-field').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') this.handleTalk();
+    });
+  }
+
+  async handleConnect() {
+    const connectButton = document.getElementById('connect-button');
+    connectButton.classList.add('loading');
+
+    try {
+      if (this.peerConnection?.connectionState === 'connected') return;
+
+      this.cleanup();
+
+      const response = await fetch(`${this.DID_API_URL}/talks/streams`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${btoa(this.API_CONFIG.key + ':')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          source_url: "https://raw.githubusercontent.com/jjmlovesgit/D-id_Streaming_Chatgpt/main/oracle_pic.jpg",
+          stream_warmup: true
+        }),
+      });
+
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+      const { id, offer, ice_servers, session_id } = await response.json();
+      this.streamId = id;
+      this.sessionId = session_id;
+
+      const answer = await this.createPeerConnection(offer, ice_servers);
+      await this.sendSDPAnswer(answer);
+
+      connectButton.classList.remove('loading');
+      connectButton.classList.add('connected');
+
+      this.updateUI(true);
+      document.getElementById('user-input-field').focus();
+    } catch (error) {
+      this.showError(`Connection failed: ${error.message}`);
+      connectButton.classList.remove('loading', 'connected');
+      this.cleanup();
+    }
+  }
+
+  async handleTalk() {
+    try {
+      const userMessage = document.getElementById('user-input-field').value.trim();
+      if (!userMessage) throw new Error('Please enter a message');
+
+      const { fetchOpenAIResponse } = await import('./openai.js');
+      const aiResponse = await fetchOpenAIResponse(this.API_CONFIG.openai_key, userMessage);
+
+      const talkResponse = await fetch(`${this.DID_API_URL}/talks/streams/${this.streamId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${btoa(this.API_CONFIG.key + ':')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          script: {
+            type: 'text',
+            input: aiResponse,
+            provider: {
+              type: 'microsoft',
+              voice_id: this.API_CONFIG.voice_id
+            }
+          },
+          config: { fluent: true, stitch: true },
+          driver_url: 'bank://lively/',
+          session_id: this.sessionId
+        })
+      });
+
+      if (!talkResponse.ok) throw new Error('Failed to send to D-ID');
+
+      document.getElementById('user-input-field').value = '';
+    } catch (error) {
+      console.error('Talk Error:', error);
+      alert(`Error: ${error.message}`);
+    }
+  }
+
+  async handleDestroy() {
+    const connectButton = document.getElementById('connect-button');
+
+    try {
+      if (this.streamId) {
+        await fetch(`${this.DID_API_URL}/talks/streams/${this.streamId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Basic ${btoa(this.API_CONFIG.key + ':')}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ session_id: this.sessionId }),
+        });
+      }
+    } catch (error) {
+      console.error('Destroy error:', error);
+    } finally {
+      this.cleanup();
+      this.updateUI(false);
+      connectButton.classList.remove('connected', 'loading');
+    }
+  }
+
+  async createPeerConnection(offer, iceServers) {
+    const RTCPeerConnection = (
+      window.RTCPeerConnection ||
+      window.webkitRTCPeerConnection ||
+      window.mozRTCPeerConnection
+    ).bind(window);
+
+    this.peerConnection = new RTCPeerConnection({ iceServers });
+
+    this.peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        fetch(`${this.DID_API_URL}/talks/streams/${this.streamId}/ice`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${btoa(this.API_CONFIG.key + ':')}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            candidate: event.candidate.candidate,
+            sdpMid: event.candidate.sdpMid,
+            sdpMLineIndex: event.candidate.sdpMLineIndex,
+            session_id: this.sessionId,
+          }),
+        }).catch(console.error);
+      }
+    };
+
+    this.peerConnection.ontrack = (event) => {
+      if (event.track.kind === 'video') {
+        this.statsIntervalId = setInterval(async () => {
+          const stats = await this.peerConnection.getStats(event.track);
+          stats.forEach((report) => {
+            if (report.type === 'inbound-rtp' && report.kind === 'video') {
+              const isPlaying = report.bytesReceived > this.lastBytesReceived;
+              if (isPlaying !== this.videoIsPlaying) {
+                this.videoIsPlaying = isPlaying;
+                this.updateStatus('streaming', isPlaying ? 'streaming' : 'idle');
+
+                if (isPlaying) {
+                  this.idleVideo.style.display = 'none';
+                  this.talkVideo.style.display = 'block';
+                  this.talkVideo.srcObject = event.streams[0];
+                  this.talkVideo.play().catch(console.error);
+                } else {
+                  this.talkVideo.pause();
+                  this.talkVideo.srcObject = null;
+                  this.talkVideo.style.display = 'none';
+                  this.idleVideo.style.display = 'block';
+                }
+              }
+              this.lastBytesReceived = report.bytesReceived;
+            }
+          });
+        }, 500);
+      }
+    };
+
+    await this.peerConnection.setRemoteDescription(offer);
+    const answer = await this.peerConnection.createAnswer();
+    await this.peerConnection.setLocalDescription(answer);
+    return answer;
+  }
+
+  async sendSDPAnswer(answer) {
+    const response = await fetch(`${this.DID_API_URL}/talks/streams/${this.streamId}/sdp`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${btoa(this.API_CONFIG.key + ':')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        answer: answer,
+        session_id: this.sessionId
+      })
+    });
+    if (!response.ok) throw new Error('Failed to send SDP answer');
+  }
+
+  cleanup() {
+    if (this.peerConnection) {
+      this.peerConnection.close();
+      this.peerConnection = null;
+    }
+
+    this.talkVideo.pause();
+    this.talkVideo.srcObject = null;
+    this.talkVideo.style.display = 'none';
+    this.idleVideo.style.display = 'block';
+
+    const video = document.getElementById('talk-video');
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+    }
+
+    if (this.statsIntervalId) {
+      clearInterval(this.statsIntervalId);
+      this.statsIntervalId = null;
+    }
+
+    ['peer', 'ice', 'iceGathering', 'signaling', 'streaming'].forEach(type => {
+      this.updateStatus(type, type === 'signaling' ? 'stable' : 'disconnected');
+    });
+  }
+
+  updateUI(connected) {
+    const connectButton = document.getElementById('connect-button');
+    const talkButton = document.getElementById('talk-button');
+    const destroyButton = document.getElementById('destroy-button');
+
+    talkButton.disabled = !connected;
+    destroyButton.disabled = !connected;
+
+    if (connected) {
+      connectButton.classList.add('connected');
+    } else {
+      connectButton.classList.remove('connected', 'loading');
+    }
+  }
+
+  updateStatus(type, state) {
+    const label = document.getElementById(`${type}-status-label`);
+    if (!label) return;
+    label.innerText = state;
+    label.className = `${type}-${state}`;
+  }
+
+  showError(message) {
+    alert(message);
+    console.error(message);
+  }
 }
+
+document.addEventListener('DOMContentLoaded', () => new VideoAgent());
