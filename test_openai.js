@@ -1,6 +1,6 @@
-const config = require('./config.json');
+const config = require('./api.json');
 
-const OPENAI_API_KEY = config.OPENAI_API_KEY;
+const openai_key = config.openai_key;
 const OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
 
 async function main() {
@@ -10,11 +10,11 @@ async function main() {
         const response = await fetch(OPENAI_ENDPOINT, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                'Authorization': `Bearer ${openai_key}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: "gpt-3.5-turbo",
+                model: "gpt-4o-mini",
                 messages: [{"role": "user", "content": prompt}],
                 temperature: 0.7
             }),
