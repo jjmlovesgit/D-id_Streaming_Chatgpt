@@ -1,7 +1,7 @@
 # Streaming Live Demo by D-ID (tested 4/5/25)
 ## Please consider leaving as star :)
 
-https://youtu.be/TmEVbnsHFYQ
+[https://youtu.be/TmEVbnsHFYQ](https://youtu.be/vhT53ZrLy4w)
 
 ## Initial Setup:
 * (install express) open a terminal in the folder:
