@@ -1,192 +1,223 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>D-ID Streaming POC</title>
-    <!-- added google fonts -->
+    <title>AI Video Agent</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;700&display=swap"
       rel="stylesheet"
     />
-
     <style>
-      #user-input-field {
-          width: 80%; /* Set desired width here */
-          padding: 8px; /* Adding some padding for better appearance */
-          box-sizing: border-box; /* So the width includes padding */
-          margin: 0 auto; /* Centering the input box */
-          display: block; /* To apply margin auto */
+      * {
+        box-sizing: border-box;
       }
+
       body {
-      background-color: #121212;
-      color: #ffffff;
-      font-family: 'Mulish', sans-serif;
-      }
-      .peerConnectionState-new {
-        color: cornflowerblue;
-      }
-      .peerConnectionState-connecting {
-        color: orange;
-      }
-      .peerConnectionState-connected {
-        color: green;
-      }
-      .peerConnectionState-disconnected,
-      .peerConnectionState-closed,
-      .peerConnectionState-failed {
-        color: red;
-      }
-
-      .iceConnectionState-new {
-        color: cornflowerblue;
-      }
-      .iceConnectionState-checking {
-        color: orange;
-      }
-      .iceConnectionState-connected,
-      .iceConnectionState-completed {
-        color: green;
-      }
-      .peerConnectionState-disconnected,
-      .peerConnectionState-closed,
-      .peerConnectionState-failed {
-        color: red;
-      }
-
-      .iceGatheringState-new {
-        color: cornflowerblue;
-      }
-      .iceGatheringState-gathering {
-        color: orange;
-      }
-      .iceGatheringState-complete {
-        color: black;
-      }
-
-      .signalingState-stable {
-        color: green;
-      }
-      .signalingState-have-local-offer,
-      .signalingState-have-remote-offer,
-      .signalingState-have-local-pranswer,
-      .signalingState-have-remote-pranswer {
-        color: cornflowerblue;
-      }
-      .signalingState-closed {
-        color: red;
-      }
-
-      .streamingState-streaming {
-        color: green;
-      }
-
-      .streamingState-empty {
-        color: grey;
-      }
-
-      /* added css from here */
-
-      body * {
+        background-color: #0f0f11;
+        color: #ffffff;
         font-family: 'Mulish', sans-serif;
-        text-align: center;
+        margin: 0;
+        padding: 20px;
       }
 
       #content {
-        width: 820px;
-        position: relative;
+        max-width: 860px;
         margin: 0 auto;
+        padding: 20px;
+        background: #1a1a1d;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
       }
 
-      #buttons {
-        clear: both;
-        padding: 0 0 0 0;
+      .title {
         text-align: center;
-      }
-
-      button {
-        padding: 10px 20px;
-        border-radius: 5px;
-        border: none;
-        font-size: 16px;
-        margin: 0 5px;
-        background-color: #7459fe;
-        color: #fff;
-      }
-
-      button:hover {
-        background-color: #9480ff;
-        cursor: pointer;
-        transition: all 0.2s ease-out;
-      }
-
-      #status {
-        clear: both;
-        padding: 20px 0 0 0;
-        text-align: left;
-        display: inline-block;
-        zoom: 1;
-        line-height: 140%;
-        font-size: 15px;
-      }
-
-      #status div {
-        padding-bottom: 10px;
+        font-size: 28px;
+        margin-bottom: 30px;
+        color: #00eaff;
       }
 
       #video-wrapper {
-        background: url(bg.png);
-        height: 500px;
-        background-position: top;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #222225;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.05);
       }
 
-      #video-wrapper div {
-        width: 400px;
-        margin: 0 auto;
-        padding: 50px 0 0 0;
-      }
-      video {
-        display: block;
-        /* border:1px solid; */
+      #video-container {
+        width: 320px;
+        height: 320px;
         border-radius: 50%;
+        overflow: hidden;
+        border: 6px solid #00eaff;
+        box-shadow: 0 0 20px rgba(0, 234, 255, 0.3);
+        position: relative;
+      }
+
+      #idle-video,
+      #talk-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
         background-color: #000;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      #talk-video {
+        display: none;
+      }
+
+      #input-container {
+        position: relative;
+        width: 100%;
+        margin-top: 20px;
+      }
+
+      #user-input-field {
+        width: 100%;
+        padding: 14px 50px 14px 20px;
+        border-radius: 12px;
+        border: none;
+        background: #2b2b30;
+        color: white;
+        font-size: 16px;
+        outline: none;
+      }
+
+      #enter-button {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #00eaff;
+        cursor: pointer;
+        font-size: 22px;
+        padding: 5px;
+        transition: color 0.2s ease;
+      }
+
+      #enter-button:hover {
+        color: #66f6ff;
+      }
+
+      #divider-line {
+        border: none;
+        height: 2px;
+        background: #333;
+        margin: 30px 0;
+        transition: background 0.3s ease;
+      }
+
+      #divider-line:hover {
+        background: #00eaff;
+        height: 3px;
+      }
+
+      #buttons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      button {
+        padding: 14px 28px;
+        border-radius: 12px;
+        border: none;
+        font-size: 16px;
+        font-weight: 700;
+        background-color: #00eaff;
+        color: #000;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 120px;
+        box-shadow: 0 4px 12px rgba(0, 234, 255, 0.2);
+        position: relative;
+      }
+
+      button:hover:not(:disabled) {
+        background-color: #66f6ff;
+        transform: translateY(-2px);
+      }
+
+      button:disabled {
+        background-color: #3a3a3a;
+        color: #777;
+        cursor: not-allowed;
+      }
+
+      #connect-button.connected {
+        background-color: #00ff99 !important;
+        color: #000 !important;
+      }
+
+      #connect-button.loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 16px;
+        height: 16px;
+        margin-top: -8px;
+        margin-left: -8px;
+        border: 2px solid #000;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      #connect-button.loading {
+        color: transparent !important;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .hidden-audio {
+        display: none;
       }
     </style>
   </head>
 
   <body>
-    <!-- adde "id=content" -->
     <div id="content">
-      <!-- added "id=video-wrapper" -->
+      <h1 class="title">D-ID AI Video Agent Demo</h1>
+
       <div id="video-wrapper">
-        <div>
-          <video id="talk-video" width="400" height="400" autoplay></video>
+        <div id="video-container">
+          <video id="idle-video" src="./oracle_Idle.mp4" autoplay muted loop playsinline></video>
+          <video id="talk-video" autoplay playsinline></video>
         </div>
       </div>
-      <br />
+
       <div id="input-container">
-        <input type="text" id="user-input-field" placeholder="I am your ChatGPT Live Agent...">
-        <hr> <!-- Add a horizontal rule -->
-      </div>
-      <!-- added div#buttons -->
-      <div id="buttons">
-        <button id="connect-button" type="button">Connect</button>
-        <button id="talk-button" type="button">Start</button>
-        <button id="destroy-button" type="button">Destroy</button>
+        <input type="text" id="user-input-field" placeholder="Ask me anything...">
+        <button id="enter-button" title="Send message">↵</button>
       </div>
 
-      <!-- added div#status -->
-      <div id="status">
-        <!-- removed the wrapping <div> tags -->
-        ICE gathering status: <label id="ice-gathering-status-label"></label
-        ><br />
-        ICE status: <label id="ice-status-label"></label><br />
-        Peer connection status: <label id="peer-status-label"></label><br />
-        Signaling status: <label id="signaling-status-label"></label><br />
-        Streaming status: <label id="streaming-status-label"></label><br />
+      <hr id="divider-line">
+
+      <div id="buttons">
+        <button id="connect-button" type="button">Connect</button>
+        <button id="talk-button" type="button" disabled>Restart</button>
+        <button id="destroy-button" type="button" disabled>Disconnect</button>
       </div>
     </div>
 
-    <script type="module" src="./index.js"></script>
+    <audio id="audio-element" class="hidden-audio" autoplay></audio>
+    <script type="module" src="./streaming-client-api.js"></script>
+  </body>
+</html>
+
   </body>
 </html>
