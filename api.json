@@ -1,4 +1,7 @@
 {
     "key": "Your Key Here 🙂",
-    "url": "https://api.d-id.com"
+    "openai_key": "sYour Key Here 🙂",
+    "url": "Your Key Here 🙂",
+    "model": "gpt-4o-mini",
+    "voice_id": "en-US-ChristopherNeural"
 }
