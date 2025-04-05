@@ -31,7 +31,5 @@
 * Be patient and enjoy the puzzle if things are not working right away -- stay with it you will get it!
 * ChatGPT is your friend...  share the code and any errors and ask it for help
 
-https://youtu.be/WTONZ6T1LmA
-
 ![image](https://github.com/user-attachments/assets/761fbc43-9b7c-42db-8e71-fb5eee5a0574)
 
