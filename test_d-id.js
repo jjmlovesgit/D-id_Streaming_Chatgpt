@@ -1,38 +1,34 @@
-const fetch = require('node-fetch');
-const base64 = require('base-64');
-const fs = require('fs');
+const config = require('./api.json');
 
-async function getDidCredits(apiKey) {
-  const url = "https://api.d-id.com/credits";
-  const authString = apiKey + ":";
-  const base64AuthString = base64.encode(authString);
-
-  const headers = {
-    "accept": "application/json",
-    "Authorization": `Basic ${base64AuthString}`
-  };
-
-  const response = await fetch(url, { headers });
-  const data = await response.json();
-  return data;
-}
+const openai_key = config.openai_key;
+const OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
 
 async function main() {
-  try {
-    // Read the API key from api.json file
-    const apiKeyJson = JSON.parse(fs.readFileSync('api.json', 'utf8'));
-    const apiKey = apiKeyJson.key;
+    const fetch = await import('node-fetch').then(module => module.default);
 
-    const didCredits = await getDidCredits(apiKey);
-    // Extracting just the 'remaining' and 'total' values
-    const creditsSummary = {
-      remaining: didCredits.remaining,
-      total: didCredits.total
-    };
-    console.log("Credits Summary:", creditsSummary);
-  } catch (error) {
-    console.error("Error:", error);
-  }
+    async function fetchOpenAIResponse(prompt) {
+        const response = await fetch(OPENAI_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${openai_key}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [{"role": "user", "content": prompt}],
+                temperature: 0.7
+            }),
+        });
+
+        const data = await response.json();
+        return data.choices[0].message.content.trim();  
+    }
+
+    const userInput = "Who is the CEO of Tesla?";
+    const openAIResponse = await fetchOpenAIResponse(userInput);
+
+    console.log("User Input:", userInput);
+    console.log("OpenAI Response:", openAIResponse);
 }
 
-main();
+main().catch(error => console.error(error));
