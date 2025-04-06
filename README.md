@@ -40,7 +40,7 @@
 * Be patient and enjoy the puzzle if things are not working right away -- stay with it you will get it!
 * ChatGPT is your friend...  share the code and any errors and ask it for help
 
-![image](https://github.com/user-attachments/assets/761fbc43-9b7c-42db-8e71-fb5eee5a0574)
+![image](https://github.com/user-attachments/assets/c4a0dc9d-b0f7-495e-95d6-502f29ee8b91)
 
 ##
 ![image](https://github.com/user-attachments/assets/06c1dbc1-c30d-4397-b014-ae0fbc50b03c)
