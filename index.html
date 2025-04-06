@@ -56,6 +56,7 @@
         border: 6px solid #00eaff;
         box-shadow: 0 0 20px rgba(0, 234, 255, 0.3);
         position: relative;
+        background: linear-gradient(to bottom, #333, #444);
       }
 
       #idle-video,
@@ -146,6 +147,7 @@
       button:hover:not(:disabled) {
         background-color: #66f6ff;
         transform: translateY(-2px);
+        transition: background-color 0.2s ease, transform 0.2s ease;
       }
 
       button:disabled {
@@ -158,7 +160,7 @@
         background-color: #00ff99 !important;
         color: #000 !important;
       }
-
+      
       #connect-button.loading::after {
         content: '';
         position: absolute;
@@ -178,14 +180,93 @@
         color: transparent !important;
       }
 
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
+    /* Add a loading animation to the connect button */
+    #connect-button.loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 16px;
+      height: 16px;
+      margin-top: -8px;
+      margin-left: -8px;
+      border: 2px solid #000;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
 
-      .hidden-audio {
-        display: none;
+    /* Improve button hover effects */
+    button:hover:not(:disabled) {
+      background-color: #66f6ff;
+      transform: translateY(-2px);
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    /* Enhance video container styles */
+    #video-container {
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 6px solid #00eaff;
+      box-shadow: 0 0 20px rgba(0, 234, 255, 0.3);
+      background: linear-gradient(to bottom, #333, #444);
+    }
+
+    /* Add a focus effect to the input field */
+    #user-input-field:focus {
+      outline: none;
+      box-shadow: 0 0 10px rgba(0, 234, 255, 0.5);
+    }
+
+    /* Define the light theme */
+    :root {
+      --background-color: #ffffff;
+      --text-color: #000000;
+    }
+
+    /* Define the dark theme */
+    .dark-mode {
+      --background-color: #0f0f11;
+      --text-color: #ffffff;
+    }
+
+    /* Apply the theme styles */
+    body {
+      background-color: var(--background-color);
+      color: var(--text-color);
+    }
+
+    #input-container.loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-top: 3px solid #00eaff;
+      border-radius: 50%;
+      animation: spinner-border 0.75s linear infinite;
+    }
+
+    @keyframes spinner-border {
+      100% {
+        transform: translateX(-50%) rotate(360deg);
       }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .hidden-audio {
+      display: none;
+    }  
+
     </style>
   </head>
 
@@ -209,15 +290,12 @@
 
       <div id="buttons">
         <button id="connect-button" type="button">Connect</button>
-        <button id="talk-button" type="button" disabled>Restart</button>
         <button id="destroy-button" type="button" disabled>Disconnect</button>
+        <button id="theme-toggle">Toggle Theme</button>
       </div>
     </div>
 
     <audio id="audio-element" class="hidden-audio" autoplay></audio>
     <script type="module" src="./streaming-client-api.js"></script>
-  </body>
-</html>
-
   </body>
 </html>
